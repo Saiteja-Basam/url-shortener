@@ -55,10 +55,15 @@ public class UrlShoternService {
 	public String getOriginalUrl(String  encodedUrl) {
 		System.out.println("Fetching from DB...");
 		Optional<UrlData> urlData= urlDataRepository.findByEncodedUrl(encodedUrl);
+		
 		if(urlData.isEmpty()) {
-			throw new RuntimeException("");
+			throw new RuntimeException("Requested URL is expired or not present.");
 		}
 		
+		if(LocalDateTime.now().isAfter(urlData.get().getExpiryTime())) {
+			urlDataRepository.delete(urlData.get());
+			throw new RuntimeException("Requested URL is expired.");
+		}
 		return urlData.get().getOriginalUrl();
 	}
 }
